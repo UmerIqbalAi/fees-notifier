@@ -1,55 +1,70 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version change: [CONSTITUTION_VERSION] -> 1.0.0
+- List of modified principles (old title -> new title if renamed):
+    - [PRINCIPLE_1_NAME] -> I. Spec-Driven Development (SDD)
+    - [PRINCIPLE_2_NAME] -> II. Simplicity & Minimal MVP
+    - [PRINCIPLE_3_NAME] -> III. Mobile Identifier (Single Source of Truth)
+    - [PRINCIPLE_4_NAME] -> IV. Resilience & Independence
+    - [PRINCIPLE_5_NAME] -> V. Security-First Administration
+    - [PRINCIPLE_6_NAME] -> VI. Side-Effect Integrity
+- Added sections: Core Principles, Technology Constraints, Development Workflow
+- Removed sections: none
+- Templates requiring updates (✅ updated / ⚠ pending) with file paths:
+    - .specify/templates/plan-template.md (⚠ pending - instruction context updated)
+    - .specify/templates/spec-template.md (⚠ pending - configuration alignment)
+    - .specify/templates/tasks-template.md (⚠ pending - task categorization)
+- Follow-up TODOs if any placeholders intentionally deferred:
+    - none
+-->
+
+# Fees Notifier Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Spec-Driven Development (SDD)
+The project MUST strictly follow Spec-Driven Development. Every feature begins with a specification, followed by a plan and tasks. Code implementation MUST ONLY occur after design approval and implementation of tests that verify the requirements.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Simplicity & Minimal MVP
+The system is built as a minimal, production-ready MVP for small gym business. Prioritize simplicity, clarity, and reliability over extensive features. Avoid over-engineering; if a feature is not explicitly defined in the spec, it MUST NOT be implemented.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Mobile Identifier (Single Source of Truth)
+The mobile number is the unique, primary identifier for all customers. Any data lookup, payment association, or notification target MUST revolve around the mobile number.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Resilience & Independence
+The system MUST work even if external services (like WhatsApp) fail. Core operations, particularly saving payments and maintaining the local database, must remain functional regardless of the status of notification channels.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Security-First Administration
+The system uses a single admin password (gym PIN) stored securely in environment variables. Access control is binary: authorized admin or public. Unauthorized users MUST NOT access payment actions or sensitive configuration.
 
-### [PRINCIPLE_6_NAME]
+### VI. Side-Effect Integrity
+Core actions (e.g., saving payments) must succeed independently of their side effects (e.g., sending a notification). Notifications are best-effort; a notification failure MUST NOT rollback a successful payment entry.
 
+## Technology Constraints
 
-[PRINCIPLE__DESCRIPTION]
+### Stack Requirements
+- **Backend**: Python + FastAPI
+- **Validation**: Pydantic for all data validation and schema enforcement.
+- **Database**: SQLite (local file-based) for MVP persistence.
+- **Frontend**: Simple web UI (Next.js or basic HTML).
+- **Deployment**: Free-tier friendly (Vercel-compatible).
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Development Workflow
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### Planning & Execution
+- Use `/sp.specify` to define features.
+- Use `/sp.plan` to derive technical architecture.
+- Use `/sp.tasks` to generate actionable items.
+- All code changes must be small, testable, and reference specific code line numbers (file:line).
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Amendment & Versioning
+- This constitution is the authoritative source for all architectural and procedural decisions.
+- Versioning follows semantic versioning (MAJOR.MINOR.PATCH).
+- MAJOR: Fundamental principle changes or removals.
+- MINOR: New principles or significant guidance expansions.
+- PATCH: Formatting, typos, or minor clarifications.
+- All amendments require a Sync Impact Report and verification across all project templates.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-04 | **Last Amended**: 2026-01-04

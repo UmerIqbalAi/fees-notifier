@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Payment - Gym Payment System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Record Payment</h1>
+                    <a href="/view-payments.html" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        View All Payments →
+                    </a>
+                </div>
+
+                <form id="paymentForm" class="space-y-4">
+                    <div>
+                        <label for="phone_number" class="block text-sm font-medium mb-2">Phone Number *</label>
+                        <input 
+                            type="tel" 
+                            id="phone_number" 
+                            required
+                            placeholder="03001234567"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    
+                    <div>
+                        <label for="member_name" class="block text-sm font-medium mb-2">Member Name (required for new members)</label>
+                        <input 
+                            type="text" 
+                            id="member_name" 
+                            placeholder="Ahmed Ali"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    
+                    <div>
+                        <label for="month" class="block text-sm font-medium mb-2">Month *</label>
+                        <select 
+                            id="month" 
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Select month</option>
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="amount" class="block text-sm font-medium mb-2">Amount (PKR) *</label>
+                        <input 
+                            type="number" 
+                            id="amount" 
+                            required
+                            min="1"
+                            placeholder="5000"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+                    
+                    <div id="error" class="text-red-600 text-sm hidden"></div>
+                    
+                    <button 
+                        type="submit"
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                    >
+                        Record Payment
+                    </button>
+                </form>
+                
+                <div id="receiptContainer" class="mt-8 hidden">
+                    <h2 class="text-xl font-bold mb-4 text-green-600">Payment Successful!</h2>
+                    <div class="bg-gray-50 p-4 rounded-md">
+                        <pre id="receipt" class="whitespace-pre-wrap font-mono text-sm"></pre>
+                    </div>
+                    <button
+                        id="whatsappButton"
+                        class="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition"
+                    >
+                        📲 Send Receipt on WhatsApp
+                    </button>
+                    <button
+                        onclick="location.reload()"
+                        class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                    >
+                        Record Another Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let customerPhone = '';
+        let receiptText = '';
+
+        // Format Pakistan phone number to international format (92XXXXXXXXXX)
+        function formatPhoneForWhatsApp(phone) {
+            // Remove all non-digit characters
+            const cleaned = phone.replace(/\D/g, '');
+
+            // If starts with 92, return as is
+            if (cleaned.startsWith('92')) {
+                return cleaned;
+            }
+
+            // If starts with 0, replace with 92
+            if (cleaned.startsWith('0')) {
+                return '92' + cleaned.substring(1);
+            }
+
+            // Otherwise, assume it needs 92 prefix
+            return '92' + cleaned;
+        }
+
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                phone_number: document.getElementById('phone_number').value,
+                member_name: document.getElementById('member_name').value || null,
+                month: document.getElementById('month').value,
+                amount: parseInt(document.getElementById('amount').value)
+            };
+
+            customerPhone = formData.phone_number;
+            const errorDiv = document.getElementById('error');
+
+            try {
+                const response = await fetch('/payments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    errorDiv.textContent = data.detail || 'Failed to record payment';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                const data = await response.json();
+                receiptText = data.receipt;
+
+                // Display receipt
+                document.getElementById('receipt').textContent = receiptText;
+                document.getElementById('receiptContainer').classList.remove('hidden');
+                document.getElementById('paymentForm').classList.add('hidden');
+
+            } catch (error) {
+                errorDiv.textContent = 'Failed to connect to server';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        // WhatsApp button handler
+        document.getElementById('whatsappButton').addEventListener('click', function() {
+            const formattedPhone = formatPhoneForWhatsApp(customerPhone);
+            const encodedMessage = encodeURIComponent(receiptText);
+            const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+        });
+    </script>
+</body>
+</html>

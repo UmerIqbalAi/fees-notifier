@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Payments - Gym Payment System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen py-8 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">View Payments</h1>
+                    <a href="/payment.html" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                        + Record Payment
+                    </a>
+                </div>
+
+                <!-- Filter -->
+                <div class="mb-6">
+                    <label for="monthFilter" class="block text-sm font-medium mb-2">Filter by Month</label>
+                    <select
+                        id="monthFilter"
+                        class="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="">All Months</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Total Members Paid</p>
+                        <p id="totalCount" class="text-3xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Total Amount Collected</p>
+                        <p id="totalAmount" class="text-3xl font-bold text-green-600">Rs. 0</p>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="loading" class="text-center py-8">
+                    <p class="text-gray-500">Loading payments...</p>
+                </div>
+
+                <!-- Error -->
+                <div id="error" class="text-red-600 text-center py-8 hidden"></div>
+
+                <!-- Payments Table -->
+                <div id="paymentsTable" class="hidden overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Phone</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Month</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Amount</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="text-center py-8 hidden">
+                    <p class="text-gray-500">No payments found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadPayments(month = null) {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const table = document.getElementById('paymentsTable');
+            const emptyState = document.getElementById('emptyState');
+            const totalCount = document.getElementById('totalCount');
+            const totalAmount = document.getElementById('totalAmount');
+            const paymentsBody = document.getElementById('paymentsBody');
+
+            loading.classList.remove('hidden');
+            error.classList.add('hidden');
+            table.classList.add('hidden');
+            emptyState.classList.add('hidden');
+
+            try {
+                const url = month ? '/payments?month=' + encodeURIComponent(month) : '/payments';
+                const response = await fetch(url, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    throw new Error('Failed to fetch payments');
+                }
+
+                const data = await response.json();
+
+                totalCount.textContent = data.total_count;
+                totalAmount.textContent = 'Rs. ' + data.total_amount.toLocaleString();
+
+                paymentsBody.innerHTML = '';
+
+                if (data.payments.length === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    data.payments.forEach(payment => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-t border-gray-200 hover:bg-gray-50';
+                        row.innerHTML = '<td class="px-4 py-3 text-sm">' + payment.name + '</td>' +
+                            '<td class="px-4 py-3 text-sm">' + payment.phone_number + '</td>' +
+                            '<td class="px-4 py-3 text-sm">' + payment.month + '</td>' +
+                            '<td class="px-4 py-3 text-sm font-medium">Rs. ' + payment.amount.toLocaleString() + '</td>' +
+                            '<td class="px-4 py-3 text-sm">' + new Date(payment.created_at).toLocaleDateString() + '</td>';
+                        paymentsBody.appendChild(row);
+                    });
+                    table.classList.remove('hidden');
+                }
+
+                loading.classList.add('hidden');
+
+            } catch (err) {
+                loading.classList.add('hidden');
+                error.textContent = err.message || 'Failed to load payments';
+                error.classList.remove('hidden');
+            }
+        }
+
+        loadPayments();
+
+        document.getElementById('monthFilter').addEventListener('change', (e) => {
+            const month = e.target.value;
+            loadPayments(month || null);
+        });
+    </script>
+</body>
+</html>
